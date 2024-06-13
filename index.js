@@ -76,7 +76,7 @@ app.get('/', (req, res) => {
 });
 
 // Use the router defined in the routes.js file
-app.use(jiraRoutes);
+app.use('/jira', jiraRoutes);
 
 // Define port
 const port = process.env.PORT || 3000;
