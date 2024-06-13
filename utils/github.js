@@ -1,5 +1,5 @@
-import { CHECKOV_DIRECTORY, messageForNewPRs } from '../constants/constants.js';
-import { postCommentsOnPR, cloneRepo } from './helpers.js';
+import { CHECKOV_DIRECTORY } from '../constants/constants.js';
+import { postCommentsOnPR, cloneRepo} from './helpers.js';
 import { parseCheckovReport, runCheckov } from './scanner/checkov.js';
 
 /** 
@@ -14,24 +14,14 @@ export async function handlePullRequestOpened({ octokit, payload }) {
   const repoOwner = payload.repository.owner.login;
   const repoName = payload.repository.name;
   const branch = payload.pull_request.head.ref;
-
   try {
     // Clone the repository
     await cloneRepo(repoOwner, repoName, branch);
-    const { stdout, stderr } = await runCheckov(CHECKOV_DIRECTORY);
+    const { stdout, stderr } = runCheckov(CHECKOV_DIRECTORY);
     const issues = parseCheckovReport(stdout);
 
     // Post comments on the PR
     await postCommentsOnPR(octokit, repoOwner, repoName, prNumber, issues, stderr);
-    // await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-    //   owner: payload.repository.owner.login,
-    //   repo: payload.repository.name,
-    //   issue_number: payload.pull_request.number,
-    //   body: messageForNewPRs,
-    //   headers: {
-    //     'x-github-api-version': '2022-11-28',
-    //   },
-    // });
   } catch (error) {
     if (error.response) {
       console.error(

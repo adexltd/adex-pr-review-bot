@@ -86,12 +86,15 @@ Please address this issue.
   }
 
   try {
-    await octokit.issues.createComment({
-      owner,
-      repo,
-      issue_number: prNumber,
-      body: comment,
-    });
+    await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner: owner,
+        repo: repo,
+        issue_number: prNumber,
+        body: comment,
+        headers: {
+          'x-github-api-version': '2022-11-28',
+        },
+      });
     console.log('Successfully posted comment.');
   } catch (error) {
     console.error(`Failed to post comment: ${error}`);

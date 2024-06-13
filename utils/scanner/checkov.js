@@ -1,19 +1,21 @@
-import { exec } from 'child_process';
+import { exec,spawnSync } from 'child_process';
 
-export async function runCheckov(directory) {
+ export function runCheckov(directory) {
   console.log(`Running Checkov in directory: ${directory}`);
-  return new Promise((resolve, reject) => {
-    exec(
-      `checkov -d ${directory} --download-external-modules all --quiet --compact`,
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(stderr);
-        } else {
-          resolve({ stdout, stderr });
-        }
-      }
-    );
-  });
+  const result = spawnSync('checkov', ['-d', directory, '--download-external-modules', 'all', '--quiet', '--compact']);
+  
+  if (result.error) {
+    console.error(`Failed to run Checkov: ${result.error.message}`);
+    return { stdout: '', stderr: result.error.message };
+  }
+
+  const stdout = result.stdout.toString();
+  const stderr = result.stderr.toString();
+
+  console.log(`Checkov stdout: ${stdout}`);
+  console.log(`Checkov stderr: ${stderr}`);
+  
+  return { stdout, stderr };
 }
 
 export function parseCheckovReport(report) {
