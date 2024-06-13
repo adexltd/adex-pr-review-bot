@@ -3,13 +3,11 @@ import { App } from 'octokit';
 import { createNodeMiddleware } from '@octokit/webhooks';
 import express from 'express';
 import { handlePullRequestOpened } from './utils/handlers.js';
+import { appId, privateKey, webhookSecret } from './config/config.js';
 
 dotenv.config();
 
 const app = express();
-const appId = process.env.APP_ID;
-const webhookSecret = process.env.WEBHOOK_SECRET;
-const privateKey = process.env.PRIVATE_KEY;
 const port = 9000;
 const host = 'localhost';
 const path = '/webhook';

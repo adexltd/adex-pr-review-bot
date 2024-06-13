@@ -1,6 +1,6 @@
 import { CHECKOV_DIRECTORY } from "../constants/constants.js";
 import { parseCheckovReport, runCheckov } from './scanner/checkov.js';
-import { postCommentsOnPR } from './helpers.js';
+import { postCommentsOnPR } from './github/github.js';
 import { fetchSonarQubeResults, parseSonarQubeResults, runSonarScanner } from "./scanner/sonarqube.js";
 
 export async function checkovRunner(

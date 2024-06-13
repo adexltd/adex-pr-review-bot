@@ -1,6 +1,6 @@
 import { Octokit } from 'octokit';
 import fs from 'fs';
-import { CHECKOV_DIRECTORY } from '../constants/constants.js';
+import { CHECKOV_DIRECTORY } from '../../constants/constants.js';
 import { exec } from 'child_process';
 
 /**
