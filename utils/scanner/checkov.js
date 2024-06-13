@@ -1,3 +1,5 @@
+import { exec } from 'child_process';
+
 export async function runCheckov(directory) {
   console.log(`Running Checkov in directory: ${directory}`);
   return new Promise((resolve, reject) => {

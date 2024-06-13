@@ -1,4 +1,7 @@
 import { Octokit } from 'octokit';
+import fs from 'fs';
+import { CHECKOV_DIRECTORY } from '../constants/constants.js';
+import { exec } from 'child_process';
 
 /**
 Helper function to get an authenticated Octokit instance
@@ -23,7 +26,7 @@ export async function getOctokit(octokit, installationId) {
  * @param  branch
  * @returns
  */
-async function cloneRepo(owner, repo, branch) {
+export async function cloneRepo(owner, repo, branch) {
   const repoUrl = `https://github.com/${owner}/${repo}.git`;
   if (fs.existsSync(CHECKOV_DIRECTORY)) {
     console.log(`Removing existing directory: ${CHECKOV_DIRECTORY}`);
