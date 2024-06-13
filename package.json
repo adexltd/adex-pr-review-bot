@@ -1,5 +1,5 @@
 {
-  "name": "hackathon-pr-bot",
+  "name": "adex-pr-review-bot",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -12,7 +12,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axios": "^1.7.2",
     "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
@@ -20,9 +19,6 @@
     "octokit": "^4.0.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.14.2",
-    "smee-client": "^2.0.1",
-    "typescript": "^5.4.5"
+    "smee-client": "^2.0.1"
   }
 }
