@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { App } from 'octokit';
 import { createNodeMiddleware } from '@octokit/webhooks';
 import express from 'express';
-import { handlePullRequestOpened } from './utils/github.js';
+import { handlePullRequestOpened } from './utils/handlers.js';
 
 dotenv.config();
 
