@@ -1,4 +1,5 @@
-import { checkovRunner } from './runners.js';
+import { cloneRepo } from './helpers.js';
+import { checkovRunner, sonarQubeRunner } from './runners.js';
 
 /** 
 When this event handler is called, it will log the event to the console.
@@ -13,12 +14,21 @@ export async function handlePullRequestOpened({ octokit, payload }) {
   const repoName = payload.repository.name;
   const branch = payload.pull_request.head.ref;
 
+  // Clone the repository
+  await cloneRepo(repoOwner, repoName, branch);
+
   // Checkov Runner
   await checkovRunner(
     octokit,
     repoOwner,
     repoName,
-    branch,
+    prNumber,
+  )
+  // SonarQube Runner
+  await sonarQubeRunner(
+    octokit,
+    repoOwner,
+    repoName,
     prNumber,
   )
 

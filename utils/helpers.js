@@ -56,9 +56,7 @@ export async function cloneRepo(owner, repo, branch) {
  * @param  issues
  * @param  errors
  */
-export async function postCommentsOnPR(octokit, owner, repo, prNumber, issues, errors) {
-  let comment;
-
+export async function postCommentsOnPR(octokit, owner, repo, prNumber, issues, errors, comment = '') {
   if (!issues.length && !errors) {
     comment = 'No issues found by Checkov.';
   } else {
@@ -87,14 +85,14 @@ Please address this issue.
 
   try {
     await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-        owner: owner,
-        repo: repo,
-        issue_number: prNumber,
-        body: comment,
-        headers: {
-          'x-github-api-version': '2022-11-28',
-        },
-      });
+      owner: owner,
+      repo: repo,
+      issue_number: prNumber,
+      body: comment,
+      headers: {
+        'x-github-api-version': '2022-11-28',
+      },
+    });
     console.log('Successfully posted comment.');
   } catch (error) {
     console.error(`Failed to post comment: ${error}`);
