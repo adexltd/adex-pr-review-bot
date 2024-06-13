@@ -23,7 +23,7 @@ Before you begin, ensure you have the following installed:
 1. After installing smee-client, you can start using it by running the following command in your terminal:
 
    ````bash
-   smee -u https://smee.io/pqqdaZPmjTiA87Vo
+   smee --url https://smee.io/nBxPb86KX47IG4jM --path /webhook --port 3000
    ```l.
 
    ````
