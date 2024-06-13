@@ -1,50 +1,96 @@
-import axios from 'axios';
-import { messageForNewPRs } from '../constants/constants.js';
-
-const jiraBaseUrl = process.env.JIRA_BASE_URL;
-const jiraUsername = process.env.JIRA_USERNAME;
-const jiraApiToken = process.env.JIRA_API_TOKEN;
+import { Octokit } from 'octokit';
 
 /**
 Helper function to get an authenticated Octokit instance
 @param installationId 
 */
-export async function getOctokit(installationId) {
-  const auth = createAppAuth({
-    appId: GITHUB_APP_ID,
-    privateKey: GITHUB_PRIVATE_KEY,
+export async function getOctokit(octokit, installationId) {
+  const installationAuth = await octokit.auth({
+    type: 'installation',
     installationId,
   });
 
-  const { token } = await auth({ type: 'installation' });
-  return new Octokit({ auth: token });
+  const octokitWithAuth = new Octokit({
+    auth: installationAuth.token,
+  });
+  return octokitWithAuth;
 }
 
-/** 
-When this event handler is called, it will log the event to the console.
-Then, it will use GitHub's REST API to add a comment to the pull request that triggered the event.
-@param octokit
-@param payload
-*/
-export async function handlePullRequestOpened({ octokit, payload }) {
-  console.log(`Received a pull request event for #${payload.pull_request.number}`);
+/**
+ * Helper functions for the Checkov runner and action.
+ * @param  owner
+ * @param  repo
+ * @param  branch
+ * @returns
+ */
+async function cloneRepo(owner, repo, branch) {
+  const repoUrl = `https://github.com/${owner}/${repo}.git`;
+  if (fs.existsSync(CHECKOV_DIRECTORY)) {
+    console.log(`Removing existing directory: ${CHECKOV_DIRECTORY}`);
+    fs.rmSync(CHECKOV_DIRECTORY, { recursive: true, force: true });
+  }
+  console.log(`Cloning repository branch '${branch}' into directory '${CHECKOV_DIRECTORY}'`);
+  return new Promise((resolve, reject) => {
+    exec(
+      `git clone --branch ${branch} ${repoUrl} ${CHECKOV_DIRECTORY}`,
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(stdout);
+        }
+      }
+    );
+  });
+}
+
+/**
+ * Post comments on a pull request.
+ * @param octokit
+ * @param owner
+ * @param  repo
+ * @param  prNumber
+ * @param  issues
+ * @param  errors
+ */
+export async function postCommentsOnPR(octokit, owner, repo, prNumber, issues, errors) {
+  let comment;
+
+  if (!issues.length && !errors) {
+    comment = 'No issues found by Checkov.';
+  } else {
+    comment = '**Checkov Scan Result**\n\n';
+    if (issues.length) {
+      issues.forEach((issue) => {
+        comment += `
+**Check**: ${issue.check}
+**Resource**: ${issue.resource || 'N/A'}
+**File**: ${issue.file}
+**Calling File**: ${issue.calling_file || 'N/A'}
+**Severity**: ${issue.severity}
+**Code**: ${issue.code}
+**Message**: ${issue.message}
+**More Details**: ${issue.details}
+**Guide**: ${issue.guide || 'N/A'}
+
+Please address this issue.
+`;
+      });
+    }
+    if (errors) {
+      comment += `\n\n**Checkov Errors**\n\n\`\`\`\n${errors}\n\`\`\``;
+    }
+  }
 
   try {
-    await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-      owner: payload.repository.owner.login,
-      repo: payload.repository.name,
-      issue_number: payload.pull_request.number,
-      body: messageForNewPRs,
-      headers: {
-        'x-github-api-version': '2022-11-28',
-      },
+    await octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: comment,
     });
+    console.log('Successfully posted comment.');
   } catch (error) {
-    if (error.response) {
-      console.error(
-        `Error! Status: ${error.response.status}. Message: ${error.response.data.message}`
-      );
-    }
-    console.error(error);
+    console.error(`Failed to post comment: ${error}`);
   }
 }
