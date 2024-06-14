@@ -36,9 +36,10 @@ octo_app.webhooks.onError((error) => {
 });
 
 app.use(createNodeMiddleware(octo_app.webhooks, { path }));
-// app.get('/', (req, res) => {
-//   res.json('hello');
-// });
+
+app.get('/', (req, res) => {
+  res.json('hello');
+});
 // This creates a Node.js server that listens for incoming HTTP requests (including webhook payloads from GitHub) on the specified port. When the server receives a request, it executes the `middleware` function that you defined earlier. Once the server is running, it logs messages to the console to indicate that it is listening.
 app.listen(port, () => {
   console.log(`Server is listening for events at: ${localWebhookUrl}`);
