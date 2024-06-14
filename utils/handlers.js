@@ -39,7 +39,7 @@ export async function handlePullRequestOpened({ octokit, payload }) {
       const analysis = await analyzeFileWithClaude(fileContent);
       await postCommentOnFile(octokit, repoOwner, repoName, prNumber, file, analysis, commitId);
     }
-    Clone the repository
+    // Clone the repository
     await cloneRepo(repoOwner, repoName, branch);
 
     // Checkov Runner
