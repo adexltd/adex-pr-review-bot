@@ -47,6 +47,7 @@ jobs:
             SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
             PROJ_VERSION=${{ github.run_number }}-${GITHUB_REF#refs/heads/}
             BOT_USERNAME=pr-bot-adex
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             CLAUDE_API_KEY=${{ secrets.CLAUDE_API_KEY }}
             PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
             MIIEogIBAAKCAQEAuyHc3U06OPZ6818GlettSawRKtYw3vDqw8bi7YfNsRdnUdyv
