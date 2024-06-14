@@ -81,7 +81,6 @@ jobs:
       - name: upload files to s3 bucket
         run : |
           aws s3 cp . s3://github-pr-bot/files --recursive --exclude ".git/*" --exclude ".github/*"
-          aws s3 cp .env s3://github-pr-bot/files --recursive --exclude ".git/*" --exclude ".github/*"
 
 
 #   deploy:
