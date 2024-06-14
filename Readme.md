@@ -35,7 +35,7 @@ Before you begin, ensure you have the following installed:
 ## Example
 
 ```bash
-smee --url https://smee.io/your-unique-url --target http://localhost:8000
+smee --url https://smee.io/nBxPb86KX47IG4jM --path /webhook --port 9000
 ```
 
 This command will start forwarding webhook payloads from the smee.io channel to a local server running on port 8000.

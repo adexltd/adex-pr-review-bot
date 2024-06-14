@@ -4,6 +4,8 @@ import { createNodeMiddleware } from '@octokit/webhooks';
 import express from 'express';
 import { handlePullRequestOpened } from './utils/handlers.js';
 import { appId, privateKey, webhookSecret } from './config/config.js';
+import { findValueAndTriggerActivity } from './utils/jira/utils.js';
+import { activity } from './utils/jira/jira.js';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ const octo_app = new App({
     secret: webhookSecret,
   },
 });
+
+app.use(express.json());
 
 // This sets up a webhook event listener. When your app receives a webhook event from GitHub with a `X-GitHub-Event` header value of `pull_request` and an `action` payload value of `opened`, it calls the `handlePullRequestOpened` event handler that is defined above.
 octo_app.webhooks.on('pull_request.opened', handlePullRequestOpened);
@@ -40,6 +44,16 @@ app.use(createNodeMiddleware(octo_app.webhooks, { path }));
 app.get('/', (req, res) => {
   res.json('hello');
 });
+
+// Jira Create PR
+app.post('/jira', (req, res) => {
+  const payload = req.body;
+  const keyToFind = 'body';
+  const substring = '.pull_request';
+
+  findValueAndTriggerActivity(payload, keyToFind, substring, activity, octo_app.octokit.rest);
+});
+
 // This creates a Node.js server that listens for incoming HTTP requests (including webhook payloads from GitHub) on the specified port. When the server receives a request, it executes the `middleware` function that you defined earlier. Once the server is running, it logs messages to the console to indicate that it is listening.
 app.listen(port, () => {
   console.log(`Server is listening for events at: ${localWebhookUrl}`);

@@ -35,16 +35,15 @@ export async function handlePullRequestOpened({ octokit, payload }) {
       console.log('Scanning File', file.filename);
       // Get file content
       const fileContent = await getFileContent(octokit, repoOwner, repoName, file.filename, branch);
-      console.log({ fileContent });
       // const analysis = 'Nice code';
       const analysis = await analyzeFileWithClaude(fileContent);
       await postCommentOnFile(octokit, repoOwner, repoName, prNumber, file, analysis, commitId);
     }
-    // Clone the repository
-    // await cloneRepo(repoOwner, repoName, branch);
+    Clone the repository
+    await cloneRepo(repoOwner, repoName, branch);
 
-    // // Checkov Runner
-    // await checkovRunner(octokit, repoOwner, repoName, prNumber);
+    // Checkov Runner
+    await checkovRunner(octokit, repoOwner, repoName, prNumber);
 
     // Uncomment and implement if needed
     // SonarQube Runner
