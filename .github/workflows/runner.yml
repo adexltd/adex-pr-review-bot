@@ -1,0 +1,96 @@
+#.github/workflows/automation.yml
+name : artifact push to s3
+
+on: 
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  
+env:
+  awsAccountNumber: ${{ secrets.ADEX_POC}}
+  awsRegion: 'us-east-1' 
+  terraformBucket: adex-terraform-state
+  terraformDynamo: adex-terraform-state
+  terraformS3Acl: bucket-owner-full-control
+  terraformS3Encryption: true 
+  terraformBucketKey: "426857564226/github-pr-review-bot.tfstate"
+  terraformWorkDir: terraform
+  SERVER_PUBLIC_IP: 100.28.230.46
+
+jobs:
+  upload-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.awsAccountNumber }}:role/Github-OIDC-role
+          role-session-name: OIDCSession
+          aws-region: ${{ env.awsRegion }}
+
+      - name: Create Environment file once
+        run: |
+          cat << EOF > .env
+            APP_ID=Iv23liJDNKpI9Cs4L7uZ
+            WEBHOOK_SECRET=12345
+            SMEE_URL=https://smee.io/MiI0o1xfMUH5Kol
+            SONAR_HOST_URL =https://sonarqube.internal.adex.ltd
+            SONAR_PROJECTKEY=${{ github.event.repository.name }}
+            SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
+            PROJ_VERSION=${{ github.run_number }}-${GITHUB_REF#refs/heads/}
+            BOT_USERNAME=pr-bot-adex
+            CLAUDE_API_KEY=${{ secrets.CLAUDE_API_KEY }}
+            PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
+            MIIEogIBAAKCAQEAuyHc3U06OPZ6818GlettSawRKtYw3vDqw8bi7YfNsRdnUdyv
+            f3Iknh3QupQ4kytoxjGtZTLBpgNM7QK90+lVEGf67o9g3jA9VWlmcukzimuWGyza
+            TQ3SQTAp+KRPvX5A4GfeQLeJ+vAqhEiLyz8ezpG/0xhR6eYPiTjsITRg4GHF5BLC
+            cNdsLkx/Pctl+WlJCB5gMQzqvwARuwMYXgjXWySX7XZnhXbYTJEOiouJKY6xOGfu
+            oqV1trG+T97AaJVMJg4ltuIR+7ziTvtBFkIDBvMDJdW/F+Punan9xuv8fQ0c72e0
+            hvQK/IIlt/2IWEaoUpkmGAhuL0LXpyi5iFuj2wIDAQABAoIBADB+IvT6KUdPoCbn
+            DhbVjlmUDFLUdI+hUMTxCidRlNz6WpzdGmFlW9XZlhhzhoGksx8BCpT55TK3Ej0t
+            A7IhehipSV5+qzSIvawfhxvqEKAjJx/drKhhF4YrDAVR1xQc3oUIhZCxv0DW8b2b
+            6xX9Qmd3X4U9fSSmqIn/xTkJkL00R5lBpoOBHPvg8tIvudjGRjpEtbOpBYzvS0Me
+            6y0KyfKKDSOm7l5xfiawd0F7y0FVQKyXTfJSrOzFNcs7AOfFWNSdwSp2yDkmwbGw
+            Bt/Rfl/XgRFVByjk7mfiHiUwH7IW56GuPRq/Pyl8rs10uy2Q26nk4RiDw2btq+9K
+            X1iRVYkCgYEA3QL7Ta9nQKiLwMTes46h5lgDB6rEJ75fbymIzS+DabWEoGGmD6K+
+            MjRVKvJTqLhjW+2UjX1HwLwJyRJmt5fMUIa3DkA4SgqGeHDPKCQe6WdaQoKbJwYO
+            xCgy+TpWmqTqeYiD3binz+LlfqF7XMW881fnfUMhW+xIw2CqiU5/SSUCgYEA2MHW
+            9VVovw0DEt57+U1Wc6sDRfKrcoYIqDMcxU+fv1uNQALGpoVACJmPBbzctrcx58Cs
+            exBIihosbxdCdbKeUJB7zMTh5+Zf7exvteHtV/qlFZTcrR0ulGanikuUsMh259Qe
+            DsaDrIzarWq34k8NMW7gGjJNeDYG/Al/0mRUKP8CgYABdPOTH4TeuD2zl5igNmB6
+            1Dmw4z9Hw8l9QhjUwWtsVvX42KvvjnMSgaXOEqragdylznscM6c1bgfie2yR6T4/
+            iaPLREEau9cHFDdJXHOXtkayCYpcR33xbRJo8il/+3ZQNsYnv//bLvO0UfwuMF9+
+            eyXbfYXKxVP1db2qCgpswQKBgEObSgmhRxd33oKPJEng5lsTduTlSLZiueaEcq/U
+            IvZTft39P6qGmy9TffmDK7BNuWIYhXOo44c3nK5VqeP9/0UPm52FtxRWlYsnGLy5
+            KAct5TmzAZV5KaMd1Znb8xeknvm1/l4Latxx3m8CfzI2B95oP7vL/r/E0i7gY57i
+            riFPAoGAZHR6vHcvL5+YOZlwbN3OHqBP9tVMkNcWkxAk6pnepEWMMHwXe7TSxxuj
+            A2w+MKX+9g9ZX7ZHGZy9iSSka151iGJ+t2MYAQdX5yJS+kxGy+TZZrCpruB3Xvm2
+            apdTRKcemRT6XgAIKE7BNgj56etxy3AQ2B4wZd/bMiSjhPMtzZQ=
+            -----END RSA PRIVATE KEY-----"
+          EOF
+
+
+      - name: upload files to s3 bucket
+        run : |
+          aws s3 cp . s3://github-pr-bot/files --recursive --exclude ".git/*" --exclude ".github/*"
+          aws s3 cp .env s3://github-pr-bot/files --recursive --exclude ".git/*" --exclude ".github/*"
+
+
+#   deploy:
+#     needs: upload-artifact
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: configure aws credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         id: creds
+#         with:
+#           role-to-assume: arn:aws:iam::${{ env.awsAccountNumber }}:role/Github-OIDC-role
+#           role-session-name: OIDCSession
+#           aws-region: ${{ env.awsRegion }}
+#           output-credentials: true
